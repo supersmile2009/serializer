@@ -284,7 +284,7 @@ class ClassMetadata extends MergeableClassMetadata
 
     private function setDiscriminatorProperty()
     {
-        if ($this->discriminatorMap && !$this->reflection->isAbstract()) {
+        if ($this->discriminatorMap && !$this->reflection->isAbstract() && !$this->reflection->isInterface()) {
             if (false === $typeValue = array_search($this->name, $this->discriminatorMap, true)) {
                 throw new \LogicException(sprintf(
                     'The sub-class "%s" is not listed in the discriminator of the base class "%s".',
