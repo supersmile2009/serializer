@@ -10,7 +10,7 @@ use JMS\Serializer\Annotation as Serializer;
  * })
  * @Serializer\XmlDiscriminator(cdata=false)
  */
-class ObjectWithXmlNotCDataDiscriminatorParent
+abstract class ObjectWithXmlNotCDataDiscriminatorParent
 {
 
 }
