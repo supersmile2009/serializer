@@ -3,6 +3,7 @@
 namespace JMS\Serializer\Construction;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\Mapping\ClassMetadata as ORMClassMetadata;
 use JMS\Serializer\AbstractVisitor;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\Exception\InvalidArgumentException;
@@ -72,6 +73,7 @@ class DoctrineObjectConstructor implements ObjectConstructorInterface
         $classMetadata = $objectManager->getClassMetadata($metadata->name);
         $identifierList = array();
 
+        $fallbackStrategy = $this->fallbackStrategy;
         foreach ($classMetadata->getIdentifierFieldNames() as $name) {
             if ($visitor instanceof AbstractVisitor) {
                 /** @var PropertyNamingStrategyInterface $namingStrategy */
@@ -85,14 +87,35 @@ class DoctrineObjectConstructor implements ObjectConstructorInterface
                 return $this->fallbackConstructor->construct($visitor, $metadata, $data, $type, $context);
             }
 
-            $identifierList[$name] = $data[$dataName];
+            if ($classMetadata instanceof ORMClassMetadata && isset($classMetadata->associationMappings[$name])) {
+                $associationClass = $classMetadata->getAssociationTargetClass($name);
+                /** @var ORMClassMetadata $associationClassMetadata */
+                $associationClassMetadata = $objectManager->getClassMetadata($associationClass);
+
+                // NOTE: Single Columns as associated identifiers only allowed
+                $associationIdField = $associationClassMetadata->getSingleIdentifierFieldName();
+
+                $namingStrategy = $visitor->getNamingStrategy();
+                $associationMetadata = $context->getMetadataFactory()->getMetadataForClass($associationClass);
+                $associationDataName = $namingStrategy->translateName($associationMetadata->propertyMetadata[$associationIdField]);
+
+                if (!isset($data[$dataName][$associationDataName])) {
+                    return $this->fallbackConstructor->construct($visitor, $metadata, $data, $type, $context);
+                }
+                $identifierList[$name] = $data[$dataName][$associationDataName];
+                // Might be the case where we are trying to create an entity linking other entities
+                // so allow using fallback strategy like if id was missing
+                $fallbackStrategy = self::ON_MISSING_FALLBACK;
+            } else {
+                $identifierList[$name] = $data[$dataName];
+            }
         }
 
         // Entity update, load it from database
         $object = $objectManager->find($metadata->name, $identifierList);
 
         if (null === $object) {
-            switch ($this->fallbackStrategy) {
+            switch ($fallbackStrategy) {
                 case self::ON_MISSING_NULL:
                     return null;
                 case self::ON_MISSING_EXCEPTION:
