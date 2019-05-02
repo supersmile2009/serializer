@@ -73,6 +73,9 @@ class DoctrineObjectConstructor implements ObjectConstructorInterface
         $identifierList = array();
 
         foreach ($classMetadata->getIdentifierFieldNames() as $name) {
+            if (!isset($metadata->propertyMetadata[$name])) {
+                return $this->fallbackConstructor->construct($visitor, $metadata, $data, $type, $context);
+            }
             if ($visitor instanceof AbstractVisitor) {
                 /** @var PropertyNamingStrategyInterface $namingStrategy */
                 $namingStrategy = $visitor->getNamingStrategy();
