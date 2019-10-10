@@ -111,7 +111,7 @@ final class SerializationGraphNavigator extends GraphNavigator implements GraphN
     {
         // If the type was not given, we infer the most specific type from the
         // input data in serialization mode.
-        if (null === $type) {
+        if (null === $type || 'mixed' === $type['name']) {
             $typeName = \gettype($data);
             if ('object' === $typeName) {
                 $typeName = \get_class($data);

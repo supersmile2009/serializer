@@ -338,6 +338,10 @@ Available Types:
 +----------------------------------------------------------+--------------------------------------------------+
 | string                                                   | Primitive string                                 |
 +----------------------------------------------------------+--------------------------------------------------+
+| mixed                                                    | Same as no ``@Type`` annotation at all.          |
+|                                                          | This type is particularly useful to configure    |
+|                                                          | array values type**.                             |
++----------------------------------------------------------+--------------------------------------------------+
 | array                                                    | An array with arbitrary keys, and values.        |
 +----------------------------------------------------------+--------------------------------------------------+
 | array<T>                                                 | A list of type T (T can be any available type).  |
@@ -404,6 +408,8 @@ Available Types:
 +----------------------------------------------------------+--------------------------------------------------+
 
 (*) If the standalone jms/serializer is used then default format is `\DateTime::ISO8601` (which is not compatible with ISO-8601 despite the name). For jms/serializer-bundle the default format is `\DateTime::ATOM` (the real ISO-8601 format) but it can be changed in `configuration`_.
+
+(**) You can use mixed type to explicitly configure associative array of mixed values - ``array<string, mixed>`` (serialized to JSON as object), or when you have an associative array of mixed values, which you want to serialize as simple indexed array - ``array<mixed>.``
 
 Examples:
 
